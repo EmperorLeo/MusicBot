@@ -392,12 +392,14 @@ class MusicBot(discord.Client):
                         self.server_specific_data[channel.server]['last_np_msg'] = None
                     break  # This is probably redundant
 
-            if self.config.now_playing_mentions:
-                newmsg = '%s - your song **%s** is now playing in %s!' % (
-                    entry.meta['author'].mention, entry.title, player.voice_client.channel.name)
+            if player.voice_client.channel.name == "Hamilton's Theater":
+                newmsg = "The crooked media does not want you to hear **%s**! What are they hiding? Sad! %s is a patriot!  https://twitter.com/realDonaldTrump/status/799974635274194947" % (entry.title, entry.meta['author'].mention)
+            elif self.config.now_playing_mentions:
+                newmsg = 'The crooked media does not want you to hear **%s** in %s! What are they hiding? Sad! %s is a patriot!' % (
+                    entry.title, player.voice_client.channel.name, entry.meta['author'].mention)
             else:
-                newmsg = 'Now playing in %s: **%s**' % (
-                    player.voice_client.channel.name, entry.title)
+                newmsg = 'The crooked media does not want you to hear **%s** in %s! What are they hiding? Sad!' % (
+                    entry.title, player.voice_client.channel.name)
 
             if self.server_specific_data[channel.server]['last_np_msg']:
                 self.server_specific_data[channel.server]['last_np_msg'] = await self.safe_edit_message(last_np_msg, newmsg, send_if_fail=True)
@@ -777,7 +779,7 @@ class MusicBot(discord.Client):
 
         for user in user_mentions.copy():
             if user.id == self.config.owner_id:
-                print("[Commands:Blacklist] The owner cannot be blacklisted.")
+                print("[Commands:Blacklist] You cannot blacklist Leo! Conspiracy!")
                 user_mentions.remove(user)
 
         old_len = len(self.blacklist)
@@ -788,13 +790,13 @@ class MusicBot(discord.Client):
             write_file(self.config.blacklist_file, self.blacklist)
 
             return Response(
-                '%s users have been added to the blacklist' % (len(self.blacklist) - old_len),
+                '%s users have been blocked from my twitter! MAGA!' % (len(self.blacklist) - old_len),
                 reply=True, delete_after=10
             )
 
         else:
             if self.blacklist.isdisjoint(user.id for user in user_mentions):
-                return Response('none of those users are in the blacklist.', reply=True, delete_after=10)
+                return Response('None of those users are in league with the crooked media!', reply=True, delete_after=10)
 
             else:
                 self.blacklist.difference_update(user.id for user in user_mentions)
@@ -856,7 +858,7 @@ class MusicBot(discord.Client):
 
         if permissions.max_songs and player.playlist.count_for_user(author) >= permissions.max_songs:
             raise exceptions.PermissionsError(
-                "You have reached your enqueued song limit (%s)" % permissions.max_songs, expire_in=30
+                "We have reached our enqueued song limit (%s). Why won't the media let us play more? Disgraceful!" % permissions.max_songs, expire_in=30
             )
 
         await self.send_typing(channel)
@@ -988,11 +990,11 @@ class MusicBot(discord.Client):
 
             if not listlen - drop_count:
                 raise exceptions.CommandError(
-                    "No songs were added, all songs were over max duration (%ss)" % permissions.max_song_length,
+                    "No songs were added, loser songs were all over the max duration. Cheaters! (%ss)" % permissions.max_song_length,
                     expire_in=30
                 )
 
-            reply_text = "Enqueued **%s** songs to be played. Position in queue: %s"
+            reply_text = "We have **%s** songs ready to MAGA. Position in queue: %s"
             btext = str(listlen - drop_count)
 
         else:
@@ -1015,7 +1017,7 @@ class MusicBot(discord.Client):
 
                 return await self.cmd_play(player, channel, author, permissions, leftover_args, e.use_url)
 
-            reply_text = "Enqueued **%s** to be played. Position in queue: %s"
+            reply_text = "**%s** will MAGA. The media will not see it coming in %s more songs. Just like Brexit! Beware!"
             btext = entry.title
 
         if position == 1 and player.is_stopped:
@@ -1423,7 +1425,7 @@ class MusicBot(discord.Client):
 
             player.skip()  # check autopause stuff here
             await self._manual_delete_check(message)
-            return
+            return Response("Professional music protestors are skipping our songs! Very unfair! https://twitter.com/realDonaldTrump/status/796900183955095552", reply=True, delete_after=20)
 
         # TODO: ignore person if they're deaf or take them out of the list or something?
         # Currently is recounted if they vote, deafen, then vote
@@ -1492,16 +1494,21 @@ class MusicBot(discord.Client):
         if 0 < new_volume <= 100:
             player.volume = new_volume / 100.0
 
-            return Response('updated volume from %d to %d' % (old_volume, new_volume), reply=True, delete_after=20)
+            if old_volume > new_volume:
+                return Response('The rigged media is trying to silence me! But the good people of this country are too smart for that. Good news!', reply=True, delete_after=20)
+            elif new_volume > old_volume:
+                return Response('The American people are hearing my message bigleague.  We will not be stopped!', reply=True, delete_after=20)
+            else:
+                return Response('Updated volume from %d to %d' % (old_volume, new_volume), reply=True, delete_after=20)
 
         else:
             if relative:
                 raise exceptions.CommandError(
-                    'Unreasonable volume change provided: {}{:+} -> {}%.  Provide a change between {} and {:+}.'.format(
+                    'Why would the media change the volume this much? {}{:+} -> {}%. Must give a change between {} and {:+}. Irresponsible!'.format(
                         old_volume, vol_change, old_volume + vol_change, 1 - old_volume, 100 - old_volume), expire_in=20)
             else:
                 raise exceptions.CommandError(
-                    'Unreasonable volume provided: {}%. Provide a value between 1 and 100.'.format(new_volume), expire_in=20)
+                    'Why would the media change the volume to {}%? Must provide a value between 1 and 100. Irresponsible!'.format(new_volume), expire_in=20)
 
     async def cmd_queue(self, channel, player):
         """
@@ -1709,7 +1716,7 @@ class MusicBot(discord.Client):
             # TODO: Fix naming (Discord20API-ids.txt)
             await self.send_file(author, sdata, filename='%s-ids-%s.txt' % (server.name.replace(' ', '_'), cat))
 
-        return Response(":mailbox_with_mail:", delete_after=20)
+        return Response(":flag_us: :thumbsup: :mailbox_with_mail: :flag_mx: :thumbsdown:", delete_after=20)
 
 
     async def cmd_perms(self, author, channel, server, permissions):
@@ -1729,7 +1736,7 @@ class MusicBot(discord.Client):
             lines.insert(len(lines) - 1, "%s: %s" % (perm, permissions.__dict__[perm]))
 
         await self.send_message(author, '\n'.join(lines))
-        return Response(":mailbox_with_mail:", delete_after=20)
+        return Response(":flag_us: :thumbsup: :mailbox_with_mail: :flag_mx: :thumbsdown:", delete_after=20)
 
 
     @owner_only
@@ -1835,7 +1842,7 @@ class MusicBot(discord.Client):
 
         if message.channel.is_private:
             if not (message.author.id == self.config.owner_id and command == 'joinserver'):
-                await self.send_message(message.channel, 'You cannot use this bot in private messages.')
+                await self.send_message(message.channel, 'I only speak straight to the American people. No more corrupted politicians and backroom deals!')
                 return
 
         if message.author.id in self.blacklist and message.author.id != self.config.owner_id:
@@ -1903,12 +1910,12 @@ class MusicBot(discord.Client):
             if message.author.id != self.config.owner_id:
                 if user_permissions.command_whitelist and command not in user_permissions.command_whitelist:
                     raise exceptions.PermissionsError(
-                        "This command is not enabled for your group (%s)." % user_permissions.name,
+                        "Why won't the media let you use this permission for group (%s)? Revolution!" % user_permissions.name,
                         expire_in=20)
 
                 elif user_permissions.command_blacklist and command in user_permissions.command_blacklist:
                     raise exceptions.PermissionsError(
-                        "This command is disabled for your group (%s)." % user_permissions.name,
+                        "Why won't the media let you use this permission for group (%s)? Revolution!" % user_permissions.name,
                         expire_in=20)
 
             if params:
